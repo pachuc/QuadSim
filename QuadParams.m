@@ -57,8 +57,9 @@ initP = [0 0 0];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-xd = zeros(12, 1);
-%xd = [0 0 0.03 0 0 0 0 0 0 0 0 0]';	% desired state
+%xd = zeros(12, 1);
+xcur = [0 0 5 0 0 0 0 0 0 0 0 0];
+xd = [0 0 0.03 0 0 0 0 0 0 0 0 0];	% desired state
 delta = 0; %pi/4;					% yaw at linearization point
 
 
@@ -111,7 +112,12 @@ B_hat = [B; zeros(1, 4)];
 save K.mat K
 
 % % Controlling the Quadrotor
-sim('QuadSimulink')
+%sim('QuadSimulink');
 
-disp(xd);
-disp(K);
+%disp(xcur)
+%disp(xd);
+%disp(K);
+%xt = transpose(xcur);
+%disp(xt);
+%u = K * transpose(xcur);
+%disp(u);
