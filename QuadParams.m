@@ -1,3 +1,4 @@
+function QuadParams()
 %QuadParams.m
 %A file for loading all the parameter data into matlab.
 %This file will initialize all the parameters to be used in the simulation.
@@ -7,7 +8,7 @@ clc %clear the command window
 clear all %clear all variables
 close all %close all scripts.
 
-global Jr Ix Iy Iz b d l m g Kpz Kdz Kpp Kdp Kpt Kdt Kpps Kdps ZdF PhidF ThetadF PsidF ztime phitime thetatime psitime Zinit Phiinit Thetainit Psiinit Uone Utwo Uthree Ufour Ez Ep Et Eps
+global Jr Ix Iy Iz b d l m g; %Kpz Kdz Kpp Kdp Kpt Kdt Kpps Kdps ZdF PhidF ThetadF PsidF ztime phitime thetatime psitime Zinit Phiinit Thetainit Psiinit Uone Utwo Uthree Ufour Ez Ep Et Eps
 
 % Quadrotor constants
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,7 +31,23 @@ l = 0.23;  % Distance to the center of the Quadrotor
 m = 1.89;  % Mass of the Quadrotor in Kg
 g = 9.81;   % Gravitational acceleration
 
+%quadrotor state vars:
+global x y z phi theta psi xdot ydot zdot phidot thetadot psidot;
 
+%inint the state vars:
+x = 0;
+y = 0;
+z = 0;
+phi = 0;
+theta = 0;
+psi = 0;
+xdot = 0;
+ydot = 0;
+zdot = 0;
+phidot = 0;
+thetadot = 0;
+psidot = 0;    
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Control parameters
@@ -59,36 +76,8 @@ initP = [0 0 0];
 
 %xd = zeros(12, 1);
 xcur = [0 0 5 0 0 0 0 0 0 0 0 0];
-xd = [0 0 0.03 0 0 0 0 0 0 0 0 0];	% desired state
+xd = [0 0 0 0 0 0 0 0 0 0 0 0];	% desired state
 delta = 0; %pi/4;					% yaw at linearization point
-
-
-%start the simulink simulation
-%sim('QuadSimulink')
-
-%%%%%%%%%%Have to do this part in simulink.
-%%%%% Dynamics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Nonlinear System Dynamics
-
-Rx = @(tx)([1 0 0; 0 cos(tx) -sin(tx); 0 sin(tx) cos(tx)]);
-Ry = @(ty)([cos(ty) 0 -sin(ty); 0 1 0; sin(ty) 0 cos(ty)]);
-Rz = @(tz)([cos(tz) -sin(tz) 0; sin(tz) cos(tz) 0; 0 0 1]);
-Rxyz = @(theta)(Rx(theta(1))*Ry(theta(2))*Rz(theta(3)));
-
-x_dot = @(x, u)([	x(7);
-					x(8);
-					x(9);
-					(x(10) + sin(x(4))*tan(x(5))*x(11) + cos(x(4))*tan(x(5))*x(12));
-					(cos(x(4))*x(11) + sin(x(4))*x(12));
-					((sin(x(4))*x(11) + cos(x(4))*x(12))/cos(x(5)));
-					(-(b*sum(u)/m)*(cos(x(4))*sin(x(5))*cos(x(6)) + sin(x(4))*sin(x(6))));
-					(-(b*sum(u)/m)*(cos(x(4))*sin(x(5))*sin(x(6)) + sin(x(4))*cos(x(6))));
-					(g - (b*sum(u)/m)*cos(x(4))*cos(x(5)));
-					((d*b/Ix)*(u(4) - u(2)) - ((Iz - Iy)/Ix)*x(11)*x(12));
-					((d*b/Iy)*(u(1) - u(3)) - ((Ix - Iz)/Iy)*x(10)*x(12));
-					((k/Iz)*(u(1) - u(2) + u(3) - u(4)) - ((Iy - Ix)/Iz)*x(10)*x(11))
-				]);
 
 % LQR Controller
 % state defined as: [x y z tx ty tz x' y' z' tx' ty' tz']
@@ -111,6 +100,60 @@ B_hat = [B; zeros(1, 4)];
 %[K, P, L] = lqr(A_hat, B_hat, Q, R);
 save K.mat K
 
+
+%the sim running my functions:
+
+
+for time = 1:100
+        fprintf('Time step : %d\n', time);
+    fprintf('x: %d\n', x);
+    fprintf('y: %d\n', y);
+    fprintf('z: %d\n', z);
+    fprintf('phi: %d\n', phi);
+    fprintf('theta: %d\n', theta);
+    fprintf('psi: %d\n', psi);
+    fprintf('xdot: %d\n', xdot);
+    fprintf('ydot: %d\n', ydot);
+    fprintf('zdot: %d\n', zdot);
+    fprintf('phidot: %d\n', phidot);
+    fprintf('thetadot: %d\n', thetadot);
+    fprintf('psidot: %d\n', psidot);
+    
+    %difference vector.
+    xdiff = [0 0 0 0 0 0 0 0 0 0 0 0];
+    
+    xdiff(1) = x - xd(1);
+    xdiff(2) = y - xd(2);
+    xdiff(3) = z - xd(3);
+    xdiff(4) = phi - xd(4);
+    xdiff(5) = theta - xd(5);
+    xdiff(6) = psi - xd(6);
+    xdiff(7) = xdot - xd(7);
+    xdiff(8) = ydot - xd(8);
+    xdiff(9) = zdot - xd(9);
+    xdiff(10) = phidot - xd(10);
+    xdiff(11) = thetadot - xd(11);
+    xdiff(12) = psidot - xd(12);
+    
+    xt = transpose(xdiff);
+    u = K * xt;
+    
+    U1 = u(1);
+    U2 = u(2);
+    U3 = u(3);
+    U4 = u(4);
+    quadr(U1, U2, U3, U4);
+    
+    fprintf('U1: %d\n', U1);
+    fprintf('U2: %d\n', U2);
+    fprintf('U3: %d\n', U3);
+    fprintf('U4: %d\n', U4);
+    
+    
+
+    
+    
+end
 % % Controlling the Quadrotor
 %sim('QuadSimulink');
 
@@ -121,3 +164,105 @@ save K.mat K
 %disp(xt);
 %u = K * transpose(xcur);
 %disp(u);
+
+end
+
+function [xdotdot ydotdot zdotdot] = Displacement(phi, theta, psi, U1)
+global m g;
+
+POE = cos(phi) * sin(theta) * cos(psi);
+POE1 = sin(phi) * sin(psi);
+POE2 = cos(phi) * sin(theta) *sin(psi);
+POE3 = sin(phi) * cos(psi);
+POE4 = cos(phi) * cos(theta);
+
+D1 = U1/m;
+xdotdot = (POE + POE1) * D1;
+ydotdot = (POE2 + POE3) * D1;
+zdotdot = g - (POE4 *D1);
+
+end
+
+function [phidotdot thetadotdot psidotdot] = Angles(phidot, thetadot, psidot, U2, omega, U4, U3)
+global Jr Ix Iy Iz b d l m g;
+
+a1 = (Iy - Iz)/Ix;
+a2 = Jr/Ix;
+b1 = l/Ix;
+a3 = (Iz-Ix)/Iy;
+a4 = Jr/Iy;
+b2 = l/Iy;
+a5 = (Ix-Iy)/Iz;
+b3 = l/Iz;
+
+POE = a1 * thetadot * psidot;
+POE1 = a2 * thetadot * omega;
+POE2 = b1 * U2;
+phidotdot = POE + POE1 + POE2;
+
+POE3 = a3 * phidot * psidot;
+POE4 = a4 * phidot * omega;
+POE5 = b2 * U3;
+thetadotdot = POE3 + POE4 + POE5;
+
+POE6 = a5 * phidot * thetadot;
+POE7 = b3 * U4;
+psidotdot = POE6 + POE7;
+
+end
+
+function [U1_2, U2_2, U3_2, U4_2, omega] = omegasquared(U1, U2, U3, U4)
+global b l d;
+
+T1 = U1/(4*b);
+T2 = U2/(2*b*l);
+T3 = U3/(2*b*l);
+T4 = U4/(4*d);
+
+OS1 = T1 + T3 - T4;
+OS2 = T1 - T2 + T4;
+OS3 = T1 - T3 - T4;
+OS4 = T1 + T2 + T4;
+OS5 = OS2 - OS1 - OS3 + OS4;
+
+omega = dot(OS5, d);
+
+OS1cal = OS1 + OS2 + OS3 + OS4;
+OS2cal = OS4 - OS2;
+OS3cal = OS1 - OS3;
+OS4cal = OS2 - OS1 - OS3 + OS4;
+
+U1_2 = b * OS1cal;
+U2_2 = b * OS2cal;
+U3_2 = b * OS3cal;
+U4_2 = b * OS4cal;
+
+end
+
+function quadr(U1, U2, U3, U4)
+
+global x y z phi theta psi xdot ydot zdot phidot thetadot psidot;
+
+
+[U1_2, U2_2, U3_2, U4_2, omega] = omegasquared(U1, U2, U3, U4);
+
+[phidotdot, thetadotdot, psidotdot] = Angles(phidot, thetadot, psidot, U2_2, omega, U4_2, U3_2);
+
+phidot = phidot + phidotdot;
+thetadot = thetadot + thetadotdot;
+psidot = psidot + psidotdot;
+
+phi = phi + phidot;
+theta = theta + thetadot;
+psi = psi + psidot;
+
+[xdotdot, ydotdot, zdotdot] = Displacement(phi, theta, psi, U1_2);
+xdot = xdot + xdotdot;
+ydot = ydot + ydotdot;
+zdot = zdot + zdotdot;
+
+x = x + xdot;
+y = y + ydot;
+z = z + zdot;
+
+end
