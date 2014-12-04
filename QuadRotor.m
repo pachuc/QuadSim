@@ -6,7 +6,7 @@ classdef QuadRotor < handle
         %state vars
         cur_state;
         start_state;
-        end_state;
+        desired_state;
         
         %recorded vars
         x;
@@ -26,6 +26,9 @@ classdef QuadRotor < handle
         run_time;
         time_step;
         step_count;
+        
+        %control algorithm
+        control;
         
     end
     
@@ -67,6 +70,7 @@ classdef QuadRotor < handle
         obj.psidot = [];
         obj.cur_state = [0 0 0 0 0 0 0 0 0 0 0 0];
         obj.start_state = [0 0 0 0 0 0 0 0 0 0 0 0];
+        obj.desired_state = [0 0 0 0 0 0 0 0 0 0 0 0];
         end
         
         
@@ -75,10 +79,10 @@ classdef QuadRotor < handle
             if( timeStep < runTime)
                 steps = runTime/timeStep;
                 
-                if(isinteger(steps))
+                if(~mod(steps,1))
                     obj.run_time = runTime;
                     obj.time_step = timeStep;
-                    obj.step_count = steps;
+                    obj.step_count = 1;
                     set = 'Time set correctly.';
                 else
                     set = 'Failed to set time due to unacceptable values';
@@ -93,6 +97,15 @@ classdef QuadRotor < handle
             if length(inState) == 12
                 set = 'Set start state.';
                 obj.start_state = inState;
+            else
+                set = 'Did not set start state due to incorrect length.';
+            end
+        end
+        
+        function set = setDesiredState(obj, inState)
+            if length(inState) == 12
+                set = 'Set desired state.';
+                obj.desired_state = inState;
             else
                 set = 'Did not set start state due to incorrect length.';
             end
@@ -113,11 +126,18 @@ classdef QuadRotor < handle
             obj.psidot(obj.step_count) = obj.cur_state(12);
         end
         
+        function setControl(obj, control)
+            obj.control = control;
+        end
+        
         function controlvec = getControl(obj)
+            controlvec = obj.control(obj.cur_state, obj.desired_state, obj.time_step);
         end
         function nextState(obj)
             controlvec = obj.getControl();
+            disp(controlvec)
             obj.cur_state = quadr(controlvec, obj.cur_state, obj.time_step);
+            disp(obj.cur_state);
             obj.step_count = obj.step_count+1;
             
         end
@@ -250,6 +270,8 @@ zdotdot = g - (POE4 *D1);
 end
 
 function [phidotdot thetadotdot psidotdot] = Angles(phidot, thetadot, psidot, U2, omega, U4, U3)
+
+l = 0.23;  % Distance to the center of the Quadrotor
 
 %moment of intertia units: kg.m^2
 Ix = 2.297e-2;  % Quadrotor moment of inertia around X axis
