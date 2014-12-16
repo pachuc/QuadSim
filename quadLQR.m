@@ -57,8 +57,6 @@ state(11) = state_vec(1) - desired_state(1);
 state(12) = state_vec(1) - desired_state(1);
 
 xt = transpose(state_vec);
-disp(xt);
-disp(K)
 controlvec = K * xt;
 end
 

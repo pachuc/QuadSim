@@ -35,7 +35,7 @@ classdef QuadRotor < handle
     methods(Access= 'public')
         
         % Constructor Function
-        function obj= Rover8(varargin)
+        function obj= QuadRotor(varargin)
         % obj = RedRover
         % Creates instance of the user-defined class Create Robot and
         % initializes all properties. Note that if RedRover is not
@@ -55,7 +55,7 @@ classdef QuadRotor < handle
         
         obj.run_time = 0;
         obj.time_step = 0;
-        obj.step_count = 0;
+        obj.step_count = 1;
         obj.x = [];
         obj.y = [];
         obj.z = [];
@@ -107,23 +107,23 @@ classdef QuadRotor < handle
                 set = 'Set desired state.';
                 obj.desired_state = inState;
             else
-                set = 'Did not set start state due to incorrect length.';
+                set = 'Did not set desired state due to incorrect length.';
             end
         end
         
         function recordState(obj)
-            obj.x(obj.step_count) = obj.cur_state(1);
-            obj.y(obj.step_count) = obj.cur_state(2);
-            obj.z(obj.step_count) = obj.cur_state(3);
-            obj.phi(obj.step_count) = obj.cur_state(4);
-            obj.theta(obj.step_count) = obj.cur_state(5);
-            obj.psi(obj.step_count) = obj.cur_state(6);
-            obj.xdot(obj.step_count) = obj.cur_state(7);
-            obj.ydot(obj.step_count) = obj.cur_state(8);
-            obj.zdot(obj.step_count) = obj.cur_state(9);
-            obj.phidot(obj.step_count) = obj.cur_state(10);
-            obj.thetadot(obj.step_count) = obj.cur_state(11);
-            obj.psidot(obj.step_count) = obj.cur_state(12);
+            obj.x(obj.step_count*obj.time_step) = obj.cur_state(1);
+            obj.y(obj.step_count*obj.time_step) = obj.cur_state(2);
+            obj.z(obj.step_count*obj.time_step) = obj.cur_state(3);
+            obj.phi(obj.step_count*obj.time_step) = obj.cur_state(4);
+            obj.theta(obj.step_count*obj.time_step) = obj.cur_state(5);
+            obj.psi(obj.step_count*obj.time_step) = obj.cur_state(6);
+            obj.xdot(obj.step_count*obj.time_step) = obj.cur_state(7);
+            obj.ydot(obj.step_count*obj.time_step) = obj.cur_state(8);
+            obj.zdot(obj.step_count*obj.time_step) = obj.cur_state(9);
+            obj.phidot(obj.step_count*obj.time_step) = obj.cur_state(10);
+            obj.thetadot(obj.step_count*obj.time_step) = obj.cur_state(11);
+            obj.psidot(obj.step_count*obj.time_step) = obj.cur_state(12);
         end
         
         function setControl(obj, control)
@@ -133,16 +133,15 @@ classdef QuadRotor < handle
         function controlvec = getControl(obj)
             controlvec = obj.control(obj.cur_state, obj.desired_state, obj.time_step);
         end
+        
         function nextState(obj)
             controlvec = obj.getControl();
-            disp(controlvec)
             obj.cur_state = quadr(controlvec, obj.cur_state, obj.time_step);
-            disp(obj.cur_state);
             obj.step_count = obj.step_count+1;
             
         end
         
-        function startSim(obj)
+        function results = startSim(obj)
             obj.cur_state = obj.start_state;
             time = obj.time_step * obj.step_count;
             
@@ -152,22 +151,37 @@ classdef QuadRotor < handle
                 time = obj.time_step * obj.step_count;
             end
             
-            obj.stopSim();
+            results = obj.stopSim();
         end
         
-        function stopSim(obj)
-            disp(obj.x);
-            disp(obj.y);
-            disp(obj.z);
-            disp(obj.phi);
-            disp(obj.theta);
-            disp(obj.psi);
-            disp(obj.xdot);
-            disp(obj.ydot);
-            disp(obj.zdot);
-            disp(obj.phidot);
-            disp(obj.thetadot);
-            disp(obj.psidot);
+        function results = stopSim(obj)
+            results = [];
+            results(1, :) = obj.x;
+            results(2, :) = obj.y;
+            results(3, :) = obj.z;
+            results(4, :) = obj.phi;
+            results(5, :) = obj.theta;
+            results(6, :) = obj.psi;
+            results(7, :) = obj.xdot;
+            results(8, :) = obj.ydot;
+            results(9, :) = obj.zdot;
+            results(10, :) = obj.phidot;
+            results(11, :) = obj.thetadot;
+            results(12, :) = obj.psidot;
+            obj.step_count = 1;
+            obj.cur_state = obj.start_state;
+            obj.x = [];
+            obj.y = [];
+            obj.z = [];
+            obj.phi = [];
+            obj.theta = [];
+            obj.psi = [];
+            obj.xdot = [];
+            obj.ydot = [];
+            obj.zdot = [];
+            obj.phidot = [];
+            obj.thetadot = [];
+            obj.psidot = [];
             
         end
         
@@ -265,7 +279,7 @@ D1 = U1/m;
 
 xdotdot = (POE + POE1) * D1;
 ydotdot = (POE2 + POE3) * D1;
-zdotdot = g - (POE4 *D1);
+zdotdot = (POE4 *D1) - g;
 
 end
 
