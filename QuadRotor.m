@@ -112,18 +112,18 @@ classdef QuadRotor < handle
         end
         
         function recordState(obj)
-            obj.x(obj.step_count*obj.time_step) = obj.cur_state(1);
-            obj.y(obj.step_count*obj.time_step) = obj.cur_state(2);
-            obj.z(obj.step_count*obj.time_step) = obj.cur_state(3);
-            obj.phi(obj.step_count*obj.time_step) = obj.cur_state(4);
-            obj.theta(obj.step_count*obj.time_step) = obj.cur_state(5);
-            obj.psi(obj.step_count*obj.time_step) = obj.cur_state(6);
-            obj.xdot(obj.step_count*obj.time_step) = obj.cur_state(7);
-            obj.ydot(obj.step_count*obj.time_step) = obj.cur_state(8);
-            obj.zdot(obj.step_count*obj.time_step) = obj.cur_state(9);
-            obj.phidot(obj.step_count*obj.time_step) = obj.cur_state(10);
-            obj.thetadot(obj.step_count*obj.time_step) = obj.cur_state(11);
-            obj.psidot(obj.step_count*obj.time_step) = obj.cur_state(12);
+            obj.x(obj.step_count) = obj.cur_state(1);
+            obj.y(obj.step_count) = obj.cur_state(2);
+            obj.z(obj.step_count) = obj.cur_state(3);
+            obj.phi(obj.step_count) = obj.cur_state(4);
+            obj.theta(obj.step_count) = obj.cur_state(5);
+            obj.psi(obj.step_count) = obj.cur_state(6);
+            obj.xdot(obj.step_count) = obj.cur_state(7);
+            obj.ydot(obj.step_count) = obj.cur_state(8);
+            obj.zdot(obj.step_count) = obj.cur_state(9);
+            obj.phidot(obj.step_count) = obj.cur_state(10);
+            obj.thetadot(obj.step_count) = obj.cur_state(11);
+            obj.psidot(obj.step_count) = obj.cur_state(12);
         end
         
         function setControl(obj, control)

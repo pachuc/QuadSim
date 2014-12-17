@@ -108,11 +108,13 @@ function graph_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 numvars = length(handles.results(:,1));
-
+numtime = length(handles.results(1, :));
+time = 1:1:numtime;
+time = time * handles.steptime;
 for i=1:numvars
     figure;
     data = handles.results(i, :);
-    plot(data);
+    plot(time, data);
     
     if(handles.QR)
         
@@ -1234,7 +1236,7 @@ function load_button_Callback(hObject, eventdata, handles)
 [filename pathname filter]= uigetfile('*.mat','Import Data Set');
 
 if(filename)
-    load = open(filename);
+    load = importdata(filename);
     handles.results = load;
 end
 

@@ -33,7 +33,6 @@ wu = [1 1 1 1]*1e05;		% weights for control vector
 % LQR Controller
 % state defined as: [x y z tx ty tz x' y' z' tx' ty' tz']
 Q = diag([wx wa wr wp]);
-%disp(Q);
 R = diag(wu);
 M = [(-b/m)*ones(1,4); (d*b/Ix)*[0 -1 0 1]; (d*b/Iy)*[1 0 -1 0]; (k/Iz)*[1 -1 1 -1]];
 N = [-g*sin(delta) -g*cos(delta); g*cos(delta) -g*sin(delta)];
